@@ -1,28 +1,18 @@
-<script>
-	const checkURL = url => 
-		Promise.race([
-			new Promise((resolve, reject) => 
-				fetch(url).then(res => res.text()).then(html => html.indexOf('<title>wMAN MOD ') > 0 ? resolve(url) : reject())
-			),
-			new Promise((_, reject) => setTimeout(reject, 1000))
-		]);
-
-	(async () => {
-		const subnet = `192.168.1.`;
-		const promises = [];
-		for(let i = 1; i <= 255; i++) 
-			promises.push(checkURL(`http://${subnet}${i}`));
-		const webmanURL = await new Promise((resolve) => {
-	        promises.forEach(promise => promise.then(resolve))
-	    });
-		document.querySelector("#found").innerHTML = `Found webman at ${webmanURL}`;
-		document.querySelector("#restart").innerHTML = 
-			`<a href="${webmanURL}/restart.ps3" target="__blank">Restart PS3</a>`;
-	})();
-</script>
-
 <body>
 <b>Scanning 192.168.1.* for webman-mod server...</b>
 <i id="found"></i>
 <i id="restart"></i>
 </body>
+<script>
+	for(let i = 1; i <= 255; i++) 
+		((url) => fetch(url).then(res => res.text()).then(html => {
+			console.log("Found something on", url);
+			const isWebman = html.indexOf('<title>wMAN MOD ') > 0;
+			if(isWebman) {
+				console.log("Found webman!", url);
+				document.querySelector("#found").innerHTML = `Found webman at ${url}`;
+				document.querySelector("#restart").innerHTML = 
+					`<a href="${url}/restart.ps3" target="__blank">Restart PS3</a>`;
+			}
+		}).catch(console.warn.bind(console)))(`http://192.168.1.${i}`);
+</script>
